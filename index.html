@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
+<title>에이원 영업 모바일</title>
+<meta name="apple-mobile-web-app-title" content="영업 모바일">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="robots" content="noindex,nofollow">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" href="icon.png">
+<link rel="manifest" href="manifest.json">
+<style>
+:root{--ink:#1b1d1a;--sheet:#fff;--line:#cfd6e0;--soft:#f2f4f7;--mute:#5f6670;--brand:#003A84;--pastel:#e4edf9}
+@media (prefers-color-scheme:dark){:root{--ink:#eceff3;--sheet:#1a1d22;--line:#3a4250;--soft:#111317;--mute:#a9b0ba;--brand:#2c5ca8;--pastel:#1d2b42}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--soft);color:var(--ink);font-family:system-ui,-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;display:flex;min-height:100vh;align-items:center;justify-content:center;padding:16px}
+form{background:var(--sheet);border:1px solid var(--line);border-radius:16px;padding:24px 20px;width:100%;max-width:360px;display:flex;flex-direction:column;gap:12px}
+.hd{display:flex;align-items:center;gap:10px}
+.hd img{width:40px;height:40px;border-radius:8px}
+h1{font-size:20px;margin:0}
+p{margin:0;font-size:14px;color:var(--mute)}
+input[type=password],input[type=text]{font-size:18px;padding:12px;border:1.5px solid var(--line);border-radius:10px;background:var(--sheet);color:var(--ink);width:100%}
+input:focus{outline:2px solid var(--brand);outline-offset:1px}
+label{font-size:14px;display:flex;gap:8px;align-items:center;min-height:32px}
+button{font-size:17px;padding:12px;border:0;border-radius:10px;background:var(--brand);color:#fff;font-weight:700;min-height:48px}
+button:disabled{opacity:.5}
+#msg{min-height:1.4em;font-size:14px}
+#msg.err{color:#b3261e}
+</style>
+</head>
+<body>
+<form id="f" autocomplete="off">
+  <div class="hd"><img src="icon.png" alt=""><h1>에이원 영업 모바일</h1></div>
+  <p>회사 비밀번호를 넣어 주세요.</p>
+  <input id="pw" type="password" aria-label="비밀번호" required>
+  <label><input id="show" type="checkbox"> 비밀번호 보이기</label>
+  <label><input id="keep" type="checkbox" checked> 이 폰에서는 다음부터 묻지 않기</label>
+  <button id="go">열기</button>
+  <div id="msg" role="status"></div>
+</form>
+<script>
+(() => {
+  // 날인기(stamp)와 같은 잠금 방식 — app.enc = 암호문(AES-GCM), slot.json = 비밀번호로 연 열쇠
+  const KEEP = "a1sales-key", b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0)), $ = id => document.getElementById(id);
+  const msg = (t, err) => { $("msg").textContent = t; $("msg").className = err ? "err" : ""; };
+  let enc = null;
+  const getEnc = () => enc || (enc = fetch("app.enc", { cache: "no-cache" }).then(r => { if (!r.ok) throw new Error("file"); return r.arrayBuffer(); }));
+  async function openWith(rawKey) {
+    const buf = new Uint8Array(await getEnc());
+    const k = await crypto.subtle.importKey("raw", rawKey, "AES-GCM", false, ["decrypt"]);
+    const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: buf.slice(0, 12) }, k, buf.slice(12));
+    const html = await new Response(new Blob([plain]).stream().pipeThrough(new DecompressionStream("gzip"))).text();
+    document.open(); document.write(html); document.close();
+  }
+  async function unwrap(pw) {
+    const s = await (await fetch("slot.json", { cache: "no-cache" })).json();
+    const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(pw), "PBKDF2", false, ["deriveKey"]);
+    const wk = await crypto.subtle.deriveKey({ name: "PBKDF2", salt: b64(s.salt), iterations: s.iter, hash: "SHA-256" }, base, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
+    return new Uint8Array(await crypto.subtle.decrypt({ name: "AES-GCM", iv: b64(s.iv) }, wk, b64(s.ct)));
+  }
+  $("show").onchange = () => { $("pw").type = $("show").checked ? "text" : "password"; };
+  let saved = null; try { saved = localStorage.getItem(KEEP); } catch (e) {}
+  if (saved) { msg("여는 중…"); openWith(b64(saved)).catch(() => { try { localStorage.removeItem(KEEP); } catch (e) {} msg("비밀번호가 바뀌었어요. 새 비밀번호를 넣어 주세요.", true); }); }
+  else getEnc().catch(() => {});
+  $("f").onsubmit = async e => {
+    e.preventDefault(); $("go").disabled = true; msg("확인 중…");
+    let raw;
+    try { raw = await unwrap($("pw").value); } catch (err) { $("go").disabled = false; msg("비밀번호가 틀렸어요. 한/영 키와 대문자(Caps Lock)를 확인하세요.", true); return; }
+    if ($("keep").checked) try { localStorage.setItem(KEEP, btoa(String.fromCharCode(...raw))); } catch (e) {}
+    msg("여는 중…");
+    try { await openWith(raw); } catch (err) { $("go").disabled = false; msg("열지 못했어요. 인터넷 연결을 확인해 주세요.", true); }
+  };
+})();
+</script>
+</body>
+</html>
