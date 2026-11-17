@@ -84,11 +84,15 @@ button:disabled{opacity:.55;box-shadow:none}
   let saved = null; try { saved = localStorage.getItem(KEEP); } catch (e) {}
   if (saved) { msg("여는 중…"); openWith(b64(saved)).catch(() => { try { localStorage.removeItem(KEEP); } catch (e) {} msg("비밀번호가 바뀌었어요. 새 비밀번호를 넣어 주세요.", true); }); }
   else getEnc().catch(() => {});
+  // 비밀번호는 열쇠를 푸는 데만 쓰고 파일·기록에 남기지 않습니다. 다만 이 탭 안에서만 사는 sessionStorage에
+  // 한 번 두어, 앱의 음성 오더(/api/sales/voice)가 x-a1-passcode 로 보낼 수 있게 합니다(탭을 닫으면 사라짐).
+  const PW_K = "a1-sales-pass";
   $("f").onsubmit = async e => {
     e.preventDefault(); $("go").disabled = true; msg("확인 중…");
     let raw;
     try { raw = await unwrap($("pw").value); } catch (err) { $("go").disabled = false; msg("비밀번호가 틀렸어요. 한/영 키와 대문자(Caps Lock)를 확인하세요.", true); return; }
     if ($("keep").checked) try { localStorage.setItem(KEEP, btoa(String.fromCharCode(...raw))); } catch (e) {}
+    try { sessionStorage.setItem(PW_K, $("pw").value); } catch (e) {}
     msg("여는 중…");
     try { await openWith(raw); } catch (err) { $("go").disabled = false; msg("열지 못했어요. 인터넷 연결을 확인해 주세요.", true); }
   };
