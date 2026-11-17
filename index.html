@@ -4,40 +4,61 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
 <title>에이원 영업 모바일</title>
+<meta name="theme-color" content="#003A84">
 <meta name="apple-mobile-web-app-title" content="영업 모바일">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="robots" content="noindex,nofollow">
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="icon" href="icon.png">
 <link rel="manifest" href="manifest.json">
 <style>
-:root{--ink:#1b1d1a;--sheet:#fff;--line:#cfd6e0;--soft:#f2f4f7;--mute:#5f6670;--brand:#003A84;--pastel:#e4edf9}
-@media (prefers-color-scheme:dark){:root{--ink:#eceff3;--sheet:#1a1d22;--line:#3a4250;--soft:#111317;--mute:#a9b0ba;--brand:#2c5ca8;--pastel:#1d2b42}}
+:root{
+  --ink:#151a22;--sheet:#fff;--line:#dfe4ec;--soft:#f2f5fa;--mute:#5b6472;
+  --brand:#003A84;--brand-deep:#00295d;--brand-soft:#eaf1fb;--on:#fff;
+}
+@media (prefers-color-scheme:dark){:root{--ink:#edf0f5;--sheet:#181c22;--line:#2c323c;--soft:#101318;--mute:#a7afbb;--brand:#3f7cd2;--brand-deep:#0a2545;--brand-soft:#16233a;--on:#fff}}
 *{box-sizing:border-box}
-body{margin:0;background:var(--soft);color:var(--ink);font-family:system-ui,-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;display:flex;min-height:100vh;align-items:center;justify-content:center;padding:16px}
-form{background:var(--sheet);border:1px solid var(--line);border-radius:16px;padding:24px 20px;width:100%;max-width:360px;display:flex;flex-direction:column;gap:12px}
-.hd{display:flex;align-items:center;gap:10px}
-.hd img{width:40px;height:40px;border-radius:8px}
-h1{font-size:20px;margin:0}
-p{margin:0;font-size:14px;color:var(--mute)}
-input[type=password],input[type=text]{font-size:18px;padding:12px;border:1.5px solid var(--line);border-radius:10px;background:var(--sheet);color:var(--ink);width:100%}
-input:focus{outline:2px solid var(--brand);outline-offset:1px}
-label{font-size:14px;display:flex;gap:8px;align-items:center;min-height:32px}
-button{font-size:17px;padding:12px;border:0;border-radius:10px;background:var(--brand);color:#fff;font-weight:700;min-height:48px}
-button:disabled{opacity:.5}
-#msg{min-height:1.4em;font-size:14px}
-#msg.err{color:#b3261e}
+html,body{min-height:100%}
+body{margin:0;background:var(--soft);color:var(--ink);font-family:system-ui,-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  display:flex;min-height:100dvh;align-items:center;justify-content:center;
+  padding:calc(20px + env(safe-area-inset-top)) 18px calc(20px + env(safe-area-inset-bottom));
+  background-image:radial-gradient(120% 70% at 50% -10%,rgba(0,58,132,.10),transparent 62%);}
+form{background:var(--sheet);border:1px solid var(--line);border-radius:22px;padding:26px 22px 22px;width:100%;max-width:372px;
+  display:flex;flex-direction:column;gap:14px;box-shadow:0 1px 2px rgba(15,23,42,.04),0 18px 48px rgba(15,23,42,.10)}
+.hd{display:flex;align-items:center;gap:12px}
+.hd img{width:44px;height:44px;border-radius:12px;display:block;box-shadow:0 2px 6px rgba(0,0,0,.16)}
+.hd .ht{display:flex;flex-direction:column;line-height:1.2;min-width:0}
+.hd .ht small{font-size:10.5px;font-weight:800;letter-spacing:.14em;color:var(--brand);text-transform:uppercase}
+.hd h1{font-size:19px;margin:2px 0 0;letter-spacing:-.4px;font-weight:800}
+.lead{margin:0;font-size:13.5px;color:var(--mute);line-height:1.5}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:12px;font-weight:800;color:var(--mute)}
+input[type=password],input[type=text]{font-size:17px;padding:13px 14px;border:1.5px solid var(--line);border-radius:13px;background:var(--soft);color:var(--ink);width:100%;letter-spacing:.02em}
+input:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 4px var(--brand-soft)}
+label.opt{font-size:13.5px;display:flex;gap:9px;align-items:center;min-height:32px;color:var(--ink);font-weight:500}
+label.opt input{width:19px;height:19px;accent-color:var(--brand);flex:none;margin:0}
+button{font-size:16.5px;padding:14px;border:0;border-radius:13px;background:var(--brand);color:var(--on);font-weight:800;min-height:52px;letter-spacing:-.2px;box-shadow:0 6px 16px rgba(0,58,132,.22)}
+button:active{background:var(--brand-deep)}
+button:disabled{opacity:.55;box-shadow:none}
+#msg{min-height:1.5em;font-size:13px;color:var(--mute);line-height:1.45}
+#msg.err{color:#b3261e;font-weight:600}
+.foot{font-size:11.5px;color:var(--mute);line-height:1.5;border-top:1px solid var(--line);padding-top:12px;margin-top:2px}
 </style>
 </head>
 <body>
 <form id="f" autocomplete="off">
-  <div class="hd"><img src="icon.png" alt=""><h1>에이원 영업 모바일</h1></div>
-  <p>회사 비밀번호를 넣어 주세요.</p>
-  <input id="pw" type="password" aria-label="비밀번호" required>
-  <label><input id="show" type="checkbox"> 비밀번호 보이기</label>
-  <label><input id="keep" type="checkbox" checked> 이 폰에서는 다음부터 묻지 않기</label>
+  <div class="hd"><img src="icon.png" alt="에이원코리아"><div class="ht"><small>A1 KOREA</small><h1>에이원 영업 모바일</h1></div></div>
+  <p class="lead">회사 비밀번호를 넣으면 영업 오더·만기·처리중 화면이 열립니다.</p>
+  <div class="field">
+    <label for="pw">회사 비밀번호</label>
+    <input id="pw" type="password" aria-label="비밀번호" autocomplete="current-password" required>
+  </div>
+  <label class="opt"><input id="show" type="checkbox"> 비밀번호 보이기</label>
+  <label class="opt"><input id="keep" type="checkbox" checked> 이 폰에서는 다음부터 묻지 않기</label>
   <button id="go">열기</button>
-  <div id="msg" role="status"></div>
+  <div id="msg" role="status" aria-live="polite"></div>
+  <p class="foot">고객·계약은 모두 가짜 시안 자료입니다. 파일은 비밀번호로 잠겨 있고, 이 폰에 열쇠를 남기지 않으려면 위 체크를 풀어 두세요.</p>
 </form>
 <script>
 (() => {
