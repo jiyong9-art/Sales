@@ -63,7 +63,7 @@ button:disabled{opacity:.55;box-shadow:none}
 <script>
 (() => {
   // 날인기(stamp)와 같은 잠금 방식 — app.enc = 암호문(AES-GCM), slot.json = 비밀번호로 연 열쇠
-  const KEEP = "a1sales-key", b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0)), $ = id => document.getElementById(id);
+  const KEEP = "a1sales-key", KEEPPW = "a1-sales-pass2", b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0)), $ = id => document.getElementById(id);
   const msg = (t, err) => { $("msg").textContent = t; $("msg").className = err ? "err" : ""; };
   let enc = null;
   const getEnc = () => enc || (enc = fetch("app.enc", { cache: "no-cache" }).then(r => { if (!r.ok) throw new Error("file"); return r.arrayBuffer(); }));
@@ -82,7 +82,7 @@ button:disabled{opacity:.55;box-shadow:none}
   }
   $("show").onchange = () => { $("pw").type = $("show").checked ? "text" : "password"; };
   let saved = null; try { saved = localStorage.getItem(KEEP); } catch (e) {}
-  if (saved) { msg("여는 중…"); openWith(b64(saved)).catch(() => { try { localStorage.removeItem(KEEP); } catch (e) {} msg("비밀번호가 바뀌었어요. 새 비밀번호를 넣어 주세요.", true); }); }
+  if (saved) { msg("여는 중…"); openWith(b64(saved)).catch(() => { try { localStorage.removeItem(KEEP); localStorage.removeItem(KEEPPW); } catch (e) {} msg("비밀번호가 바뀌었어요. 새 비밀번호를 넣어 주세요.", true); }); }
   else getEnc().catch(() => {});
   // 비밀번호는 열쇠를 푸는 데만 쓰고 파일·기록에 남기지 않습니다. 다만 이 탭 안에서만 사는 sessionStorage에
   // 한 번 두어, 앱의 음성 오더(/api/sales/voice)가 x-a1-passcode 로 보낼 수 있게 합니다(탭을 닫으면 사라짐).
@@ -91,7 +91,10 @@ button:disabled{opacity:.55;box-shadow:none}
     e.preventDefault(); $("go").disabled = true; msg("확인 중…");
     let raw;
     try { raw = await unwrap($("pw").value); } catch (err) { $("go").disabled = false; msg("비밀번호가 틀렸어요. 한/영 키와 대문자(Caps Lock)를 확인하세요.", true); return; }
-    if ($("keep").checked) try { localStorage.setItem(KEEP, btoa(String.fromCharCode(...raw))); } catch (e) {}
+    // '이 폰에서는 다시 묻지 않기' = 앱 열쇠와 함께 AI 호출용 비밀번호도 이 폰에만 둔다(서버·파일·기록에는 남기지 않음).
+    //   그래야 오더 AI·음성인식이 비밀번호를 다시 묻지 않는다(v10.9).
+    if ($("keep").checked) try { localStorage.setItem(KEEP, btoa(String.fromCharCode(...raw))); try { localStorage.setItem(KEEPPW, $("pw").value); } catch (e) {} } catch (e) {}
+    if (!$("keep").checked) try { localStorage.removeItem(KEEPPW); } catch (e) {}
     try { sessionStorage.setItem(PW_K, $("pw").value); } catch (e) {}
     msg("여는 중…");
     try { await openWith(raw); } catch (err) { $("go").disabled = false; msg("열지 못했어요. 인터넷 연결을 확인해 주세요.", true); }
